@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import stream from "./utils/stream";
 import userRoutes from "./routes/user.route";
 import authRoutes from "./routes/auth.route";
+import postRoutes from "./routes/post.route";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -22,6 +23,7 @@ app.get("/", (req: express.Request, res: express.Response) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 app.use(errorHandler);
 
 export default app;

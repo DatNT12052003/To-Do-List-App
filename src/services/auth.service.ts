@@ -2,6 +2,9 @@ import { Request } from "express";
 import jwt from "jsonwebtoken";
 import { IInputCreateUser } from "../interfaces/user.interface";
 import * as userModel from "../models/user.model";
+import * as permissionModel from "../models/permission.model";
+import * as roleModel from "../models/role.model";
+
 import bcrypt from "bcrypt";
 import { TLoginBy } from "../types/common";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
@@ -9,13 +12,14 @@ import { createRefreshToken, findRefreshToken, revokeRefreshToken } from "../mod
 
 export const registerUserService = async (req: Request) => {
     const { username, email, password } = req.body;
-    console.log("Received user data:", { username, email, password });
 
     if (!username || !email || !password) {
         throw new Error("Username, email, and password are required");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    console.log("Hashed password:", hashedPassword);
 
     const userData: IInputCreateUser = {
         username,
@@ -51,7 +55,10 @@ export const loginUserService = async (req: Request) => {
                 throw new Error("Invalid password");
             }
 
-            const accessToken = signAccessToken(userByEmail.id);
+            const permissions = await permissionModel.getPermissionsByUserId(userByEmail.id);
+            const roles = await roleModel.getRolesByUserId(userByEmail.id);
+
+            const accessToken = signAccessToken(userByEmail.id, roles, permissions);
             const refreshToken = signRefreshToken(userByEmail.id);
 
             await createRefreshToken({
@@ -71,7 +78,11 @@ export const loginUserService = async (req: Request) => {
             if (!isPasswordValidUsername) {
                 throw new Error("Invalid password");
             }
-            const accessTokenUsername = signAccessToken(userByUsername.id);
+
+            const permissionsUsername = await permissionModel.getPermissionsByUserId(userByUsername.id);
+            const rolesUsername = await roleModel.getRolesByUserId(userByUsername.id);
+
+            const accessTokenUsername = signAccessToken(userByUsername.id, rolesUsername, permissionsUsername);
             const refreshTokenUsername = signRefreshToken(userByUsername.id);
             await createRefreshToken({
                 userId: userByUsername.id,
@@ -91,7 +102,7 @@ export const refreshTokenService = async (refreshToken: string) => {
     }
     const payload = jwt.verify(refreshToken, process.env.REFRESH_SECRET!) as any;
     const userId = payload.userId;
-    const accessToken = signAccessToken(userId);
+    const accessToken = signAccessToken(userId, payload.roles, payload.permissions);
     await revokeRefreshToken(refreshToken);
     return { accessToken };
 };

@@ -18,7 +18,6 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getUser = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    console.log("request.user", (req as any).user);
     const user = await userService.getUserService(id);
     const responseData: IResponse<typeof user> = {
         success: true,
@@ -31,7 +30,6 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
     const userData = req.body as IInputCreateUser;
-    console.log("Received user data:", userData);
     const user = await userService.createUserService(userData);
     res.json(user);
 };
