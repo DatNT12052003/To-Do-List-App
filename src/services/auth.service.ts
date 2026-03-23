@@ -98,13 +98,19 @@ export const loginUserService = async (req: Request) => {
 export const refreshTokenService = async (refreshToken: string) => {
     const storedToken = await findRefreshToken(refreshToken);
     if (!storedToken || storedToken.revoked || storedToken.expiresAt < new Date()) {
-        return { accessToken: null };
+        return { accessToken: null, refreshToken: null };
     }
     const payload = jwt.verify(refreshToken, process.env.REFRESH_SECRET!) as any;
     const userId = payload.userId;
     const accessToken = signAccessToken(userId, payload.roles, payload.permissions);
+    const newRefreshToken = signRefreshToken(userId);
+    await createRefreshToken({
+        userId,
+        token: newRefreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
     await revokeRefreshToken(refreshToken);
-    return { accessToken };
+    return { accessToken, newRefreshToken };
 };
 
 export const logoutUserService = async (refreshToken: string) => {

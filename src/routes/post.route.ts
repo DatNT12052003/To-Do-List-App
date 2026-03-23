@@ -8,5 +8,6 @@ router.post("/", authMiddleware, postController.createPostController);
 router.post("/:id/publish", authMiddleware, postController.publishPostController);
 router.post("/:id/unpublish", authMiddleware, postController.unpublishPostController);
 router.get("/", authMiddleware, postController.getPostsController);
+router.put("/:id", authMiddleware, postController.updatePostController);
 
 export default router;

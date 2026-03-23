@@ -62,13 +62,21 @@ export const logout = async (req: Request, res: Response) => {
 
 export const refreshToken = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
+    console.log("Received refresh token:", refreshToken);
     if (!refreshToken) {
         return res.status(HTTP_RESPONSE.UNAUTHORIZED.statusCode).json({ message: HTTP_RESPONSE.UNAUTHORIZED.message });
     }
-    const { accessToken } = await auth.refreshTokenService(refreshToken);
+    const { accessToken, newRefreshToken } = await auth.refreshTokenService(refreshToken);
     if (!accessToken) {
         return res.status(HTTP_RESPONSE.FORBIDDEN.statusCode).json({ message: HTTP_RESPONSE.FORBIDDEN.message });
     }
+    res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(HTTP_RESPONSE.SUCCESS.statusCode).json({
         success: true,
         statusCode: HTTP_RESPONSE.SUCCESS.statusCode,

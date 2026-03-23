@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
-import { createPostService, getPostsService, publishPostService, unpublishPostService } from "../services/post.service";
+import {
+    createPostService,
+    getPostsService,
+    publishPostService,
+    unpublishPostService,
+    updatePostService,
+} from "../services/post.service";
 import { HTTP_RESPONSE } from "../common/http-response";
 
 export const createPostController = async (req: Request, res: Response) => {
@@ -64,6 +70,23 @@ export const getPostsController = async (req: Request, res: Response) => {
         res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(posts);
     } catch (error) {
         console.error("Error fetching posts:", error);
+        res.status(HTTP_RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({
+            message: HTTP_RESPONSE.INTERNAL_SERVER_ERROR.message,
+        });
+    }
+};
+
+export const updatePostController = async (req: Request, res: Response) => {
+    try {
+        const post = await updatePostService(req);
+        if (!post) {
+            return res.status(HTTP_RESPONSE.FORBIDDEN.statusCode).json({
+                message: "You do not have permission to update this post",
+            });
+        }
+        res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(post);
+    } catch (error) {
+        console.error("Error updating post:", error);
         res.status(HTTP_RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({
             message: HTTP_RESPONSE.INTERNAL_SERVER_ERROR.message,
         });

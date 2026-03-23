@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { createPost, getPosts, publishPost, unpublishPost } from "../models/post.model";
+import { createPost, getPostById, getPosts, publishPost, unpublishPost, updatePost } from "../models/post.model";
 
 export const createPostService = async (req: Request) => {
     const { title, content } = req.body;
@@ -43,4 +43,24 @@ export const getPostsService = async (req: Request) => {
         return null;
     }
     return await getPosts();
+};
+
+export const updatePostService = async (req: Request) => {
+    const id = Number(req.params.id);
+    const { title, content } = req.body;
+    const authorId = Number(req.user?.userId);
+    const post = await getPostById(id);
+    if (authorId !== post.author_id) {
+        return null;
+    }
+    const permissions = req.user?.permissions || [];
+
+    if (!authorId || !permissions.includes("post:update")) {
+        return null;
+    }
+    const postData = {
+        title,
+        content,
+    };
+    return await updatePost(id, postData);
 };
