@@ -10,10 +10,7 @@ export interface IUser {
 
 export interface IInputCreateUser extends IUser {}
 
-export interface IInputUpdateUser {
-    username: string;
-    email: string;
-}
+export interface IInputUpdateUser extends Partial<IUser> {}
 
 export interface IInputGetUsers extends IPagination {
     searchField?: string;

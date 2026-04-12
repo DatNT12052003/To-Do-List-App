@@ -116,3 +116,16 @@ export const refreshTokenService = async (refreshToken: string) => {
 export const logoutUserService = async (refreshToken: string) => {
     await revokeRefreshToken(refreshToken);
 };
+
+export const resetPasswordService = async (req: Request) => {
+    const { newPassword, confirmPassword } = req.body;
+    const userId = Number(req.user?.userId);
+    if (!newPassword) {
+        throw new Error("New password is required");
+    }
+    if (newPassword !== confirmPassword) {
+        throw new Error("Passwords do not match");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await userModel.updateUserPassword(userId, hashedPassword);
+};

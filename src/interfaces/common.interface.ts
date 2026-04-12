@@ -10,3 +10,9 @@ export interface IPagination {
     limit: number;
     skip: number;
 }
+
+export interface ISendEmail {
+    to: string;
+    subject: string;
+    html: string;
+}

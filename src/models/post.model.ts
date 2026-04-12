@@ -23,7 +23,7 @@ export const unpublishPost = async (id: number) => {
 };
 
 export const getPosts = async () => {
-    const query = "SELECT * FROM posts";
+    const query = "SELECT * FROM posts ORDER BY created_at DESC";
     const result = await pool.query(query);
     return result.rows;
 };

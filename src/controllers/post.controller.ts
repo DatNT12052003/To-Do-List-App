@@ -7,6 +7,8 @@ import {
     updatePostService,
 } from "../services/post.service";
 import { HTTP_RESPONSE } from "../common/http-response";
+import { IResponse } from "../interfaces/common.interface";
+import { postsResource } from "../resources/post.resource";
 
 export const createPostController = async (req: Request, res: Response) => {
     try {
@@ -67,7 +69,13 @@ export const getPostsController = async (req: Request, res: Response) => {
                 message: "You do not have permission to view posts",
             });
         }
-        res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(posts);
+        const responseData: IResponse<typeof posts> = {
+            success: true,
+            statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
+            message: HTTP_RESPONSE.SUCCESS.message,
+            data: postsResource(posts),
+        };
+        res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(responseData);
     } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(HTTP_RESPONSE.INTERNAL_SERVER_ERROR.statusCode).json({

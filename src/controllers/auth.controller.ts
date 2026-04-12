@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as auth from "../services/auth.service";
+import * as otp from "../services/otp.service";
 import { IResponse } from "../interfaces/common.interface";
 import { HTTP_RESPONSE } from "../common/http-response";
 import { log } from "node:console";
@@ -25,6 +26,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+    console.log("Login request body:", req);
     const { accessToken, refreshToken } = await auth.loginUserService(req);
 
     res.cookie("refreshToken", refreshToken, {
@@ -38,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
         success: true,
         statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
         message: HTTP_RESPONSE.SUCCESS.message,
-        data: { accessToken },
+        data: { accessToken, refreshToken },
     });
 };
 
@@ -81,6 +83,68 @@ export const refreshToken = async (req: Request, res: Response) => {
         success: true,
         statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
         message: HTTP_RESPONSE.SUCCESS.message,
-        data: { accessToken },
+        data: { accessToken, refreshToken: newRefreshToken },
     });
+};
+
+export const requestResetPassword = async (req: Request, res: Response) => {
+    try {
+        const isResetPasswordSuccess = await otp.generateOTPResetPasswordService(req);
+        if (isResetPasswordSuccess) {
+            const responseData: IResponse<any> = {
+                success: true,
+                statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
+                message: HTTP_RESPONSE.SUCCESS.message,
+            };
+            res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(responseData);
+        }
+    } catch (error) {
+        const responseData: IResponse<any> = {
+            success: false,
+            statusCode: HTTP_RESPONSE.BAD_REQUEST.statusCode,
+            message: error instanceof Error ? error.message : HTTP_RESPONSE.BAD_REQUEST.message,
+        };
+        res.status(HTTP_RESPONSE.BAD_REQUEST.statusCode).json(responseData);
+    }
+};
+
+export const verifyOTP = async (req: Request, res: Response) => {
+    try {
+        console.log("Verifying OTP with request body:", req.body);
+        const isVerifySuccess = await otp.verifyOTPService(req);
+        if (isVerifySuccess) {
+            const responseData: IResponse<any> = {
+                success: true,
+                statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
+                message: HTTP_RESPONSE.SUCCESS.message,
+            };
+            res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(responseData);
+        }
+    } catch (error) {
+        const responseData: IResponse<any> = {
+            success: false,
+            statusCode: HTTP_RESPONSE.BAD_REQUEST.statusCode,
+            message: error instanceof Error ? error.message : HTTP_RESPONSE.BAD_REQUEST.message,
+        };
+        res.status(HTTP_RESPONSE.BAD_REQUEST.statusCode).json(responseData);
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        await auth.resetPasswordService(req);
+        const responseData: IResponse<any> = {
+            success: true,
+            statusCode: HTTP_RESPONSE.SUCCESS.statusCode,
+            message: HTTP_RESPONSE.SUCCESS.message,
+        };
+        res.status(HTTP_RESPONSE.SUCCESS.statusCode).json(responseData);
+    } catch (error) {
+        const responseData: IResponse<any> = {
+            success: false,
+            statusCode: HTTP_RESPONSE.BAD_REQUEST.statusCode,
+            message: error instanceof Error ? error.message : HTTP_RESPONSE.BAD_REQUEST.message,
+        };
+        res.status(HTTP_RESPONSE.BAD_REQUEST.statusCode).json(responseData);
+    }
 };

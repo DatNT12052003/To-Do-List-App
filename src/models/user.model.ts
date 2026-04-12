@@ -73,3 +73,9 @@ export const deleteUser = async (id: number) => {
     await pool.query("DELETE FROM users WHERE id = $1", [id]);
     logger.info("Deleted user");
 };
+
+export const updateUserPassword = async (id: number, hashedPassword: string) => {
+    const result = await pool.query("UPDATE users SET password = $1 WHERE id = $2 RETURNING *", [hashedPassword, id]);
+    logger.info("Updated user password");
+    return result.rows[0];
+};
